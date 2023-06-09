@@ -31,7 +31,7 @@ rec {
                   export PATH=${busybox}/bin
                   cat <<'EOF' > $out
                   #!/bin/sh
-                  set -eou pipefail
+                  set -e
                   export NIX_CONFIG='experimental-features = nix-command flakes fetch-closure'
                   function buildtime(){
                     nix derivation show "$1" | \
