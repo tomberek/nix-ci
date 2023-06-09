@@ -31,16 +31,26 @@ rec {
                   export PATH=${busybox}/bin
                   cat <<'EOF' > $out
                   #!/bin/sh
-                  set -e
+                  set -eu
                   export NIX_CONFIG='experimental-features = nix-command flakes fetch-closure'
-                  buildtime(){
+
+                  # The intstallable's build-closure.
+                  build_closure(){
                     nix derivation show "$1" | \
                       jq '.[].inputDrvs|to_entries[]|"\(.key)^\(.value|join(","))"' -r | \
-                      xargs nix build --dry-run --json 2>/dev/null | \
+                      nix build --stdin --dry-run --json 2>/dev/null | \
                       jq '.[].outputs[]' -r
                   }
+
+                  # The intstallable's run-closure.
+                  run_closure(){
+                    nix derivation show "$1" | \
+                      jq '.[].outputs[][]' -r
+                  }
+
                   uncached(){
                     local success
+                    if [ "$#" -eq 0 ]; then set -- auto; fi
                     while read storePath; do
                       success=
                       for store in "$@"; do
@@ -51,10 +61,33 @@ rec {
                       [ -z "$success" ] && echo "$storePath"
                     done
                   }
-                  buildtime_uncached(){
-                    local drv="$1"
-                    shift
-                    buildtime "$drv" | uncached "$@"
+
+                  build_closure_uncached(){
+                    if [ "$#" == 0 ] ; then set -- -; fi
+                    if [ "$1" == "-" ]; then
+                      shift
+                      while read drv; do
+                         build_closure "$drv" | uncached "$@"
+                      done
+                    else
+                      local drv="$1"
+                      shift
+                      build_closure "$drv" | uncached "$@"
+                    fi
+                  }
+
+                  run_closure_uncached(){
+                    if [ "$#" == 0 ] ; then set -- -; fi
+                    if [ "$1" == "-" ]; then
+                      shift
+                      while read drv; do
+                         run_closure "$drv" | uncached "$@"
+                      done
+                    else
+                      local drv="$1"
+                      shift
+                      run_closure "$drv" | uncached "$@"
+                    fi
                   }
                   verbose(){
                     set -x
