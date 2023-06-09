@@ -66,8 +66,8 @@ rec {
                   }
 
                   build_closure_uncached(){
-                    if [ "$#" == 0 ] ; then set -- -; fi
-                    if [ "$1" == "-" ]; then
+                    if [ "$#" -eq 0 ] ; then set -- - ; fi
+                    if [ "$1" -eq "-" ]; then
                       shift
                       while read drv; do
                          build_closure "$drv" | uncached "$@"
@@ -80,8 +80,8 @@ rec {
                   }
 
                   run_closure_uncached(){
-                    if [ "$#" == 0 ] ; then set -- -; fi
-                    if [ "$1" == "-" ]; then
+                    if [ "$#" -eq 0 ] ; then set -- - ; fi
+                    if [ "$1" -eq "-" ]; then
                       shift
                       while read drv; do
                          run_closure "$drv" | uncached "$@"
