@@ -56,6 +56,10 @@ rec {
                     shift
                     buildtime "$drv" | uncached "$@"
                   }
+                  verbose(){
+                    set -x
+                    "$@"
+                  }
                   "$@"
                   EOF
                   chmod +x $out
