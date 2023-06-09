@@ -33,13 +33,13 @@ rec {
                   #!/bin/sh
                   set -e
                   export NIX_CONFIG='experimental-features = nix-command flakes fetch-closure'
-                  function buildtime(){
+                  buildtime(){
                     nix derivation show "$1" | \
                       jq '.[].inputDrvs|to_entries[]|"\(.key)^\(.value|join(","))"' -r | \
                       xargs nix build --dry-run --json 2>/dev/null | \
                       jq '.[].outputs[]' -r
                   }
-                  function uncached(){
+                  uncached(){
                     local success
                     while read storePath; do
                       success=
@@ -51,7 +51,7 @@ rec {
                       [ -z "$success" ] && echo "$storePath"
                     done
                   }
-                  function buildtime_uncached(){
+                  buildtime_uncached(){
                     local drv="$1"
                     shift
                     buildtime "$drv" | uncached "$@"
