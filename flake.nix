@@ -18,6 +18,7 @@ rec {
   in {
     apps =
       builtins.mapAttrs (system: busybox: {
+        ## Assumes various binaries are in path. This reduces the runtime closure.
         default = {
           type = "app";
           program = let
@@ -50,7 +51,9 @@ rec {
 
                   uncached(){
                     local success
-                    if [ "$#" -eq 0 ]; then set -- auto; fi
+                    if [ "$#" -eq 0 ]; then
+                      set -- $(nix show-config | sed -n "s/^substituters = \(.*\)/\1/p");
+                    fi
                     while read storePath; do
                       success=
                       for store in "$@"; do
