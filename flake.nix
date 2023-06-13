@@ -35,10 +35,10 @@ rec {
                   set -eu
                   export NIX_CONFIG='experimental-features = nix-command flakes fetch-closure'
 
-                  # The intstallable's build-closure.
+                  # The installable's build-closure.
                   build_closure(){
                     nix derivation show "$1" | \
-                      jq '.[].inputDrvs|to_entries[]|"\(.key)^\(.value|join(","))"' -r | \
+                      jq '.[]|[(.inputDrvs|to_entries[]|"\(.key)^\(.value|join(","))"),.inputSrcs[]]' -r | \
                       nix build --stdin --dry-run --json 2>/dev/null | \
                       jq '.[].outputs[]' -r
                   }
@@ -53,6 +53,7 @@ rec {
                     local success
                     if [ "$#" -eq 0 ]; then
                       set -- $(nix show-config | sed -n "s/^substituters = \(.*\)/\1/p");
+                      echo "info: no substituters provided, using these from nix config: $@" >&2
                     fi
                     while read storePath; do
                       success=
